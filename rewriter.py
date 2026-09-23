@@ -21,47 +21,24 @@ def get_gemini_api_key(api_key=None):
         pass
     return None
 
-def get_available_gemini_model(key):
-    """
-    Tự động truy vấn trực tiếp từ Google API xem tài khoản này được cấp những model nào.
-    Tránh 100% lỗi 404 do lệch tên model hoặc lệch version API!
-    """
-    try:
-        list_url = f"https://generativelanguage.googleapis.com/v1beta/models?key={key}"
-        res = requests.get(list_url, timeout=10).json()
-        models = res.get("models", [])
-        
-        # Lọc các model hỗ trợ generateContent
-        supported = [
-            m["name"] for m in models 
-            if "generateContent" in m.get("supportedGenerationMethods", [])
-        ]
-        
-        # Ưu tiên flash -> pro -> bất kỳ model nào có
-        for pref in ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-pro"]:
-            for name in supported:
-                if pref in name:
-                    return name # Dạng: models/gemini-...
-                    
-        if supported:
-            return supported[0]
-    except Exception as e:
-        print(f"⚠️ Không tự động dò được danh sách model ({e}), dùng mặc định.")
-    
-    return "models/gemini-1.5-flash-latest"
-
 def rewrite_script_with_gemini(transcript_text, api_key=None):
     key = get_gemini_api_key(api_key)
     if not key:
         print("⚠️ Không tìm thấy GEMINI_API_KEY.")
         return None
 
-    # 1. Tự động tìm model chính xác tuyệt đối từ Google
-    model_name = get_available_gemini_model(key)
-    # Loại bỏ tiền tố 'models/' nếu có để lắp vào URL chuẩn
-    clean_model_name = model_name.replace("models/", "")
-    print(f"\n🧠 Đang kết nối Gemini AI (Model: {clean_model_name}) để phân tích và biến tấu kịch bản...")
-    
+    # Danh sách các model chính thức theo tài liệu Google AI mới nhất:
+    # 1. gemini-2.5-flash (Model flagship thế hệ mới)
+    # 2. gemini-2.0-flash (Model flash siêu tốc)
+    # 3. gemini-2.0-flash-lite
+    # 4. gemini-2.5-pro
+    models_to_try = [
+        "gemini-2.5-flash",
+        "gemini-2.0-flash",
+        "gemini-2.0-flash-lite",
+        "gemini-2.5-pro"
+    ]
+
     prompt = f"""
 Bạn là một chuyên gia sáng tạo nội dung TikTok & Video Ngắn (Shorts/Reels) triệu view hàng đầu.
 Dưới đây là nội dung lời thoại bóc băng từ một video gốc:
@@ -98,14 +75,19 @@ Viết bằng tiếng Việt tự nhiên, ngắt nghỉ rõ ràng, chuẩn phong
         "generationConfig": {"temperature": 0.7, "maxOutputTokens": 4096}
     }
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{clean_model_name}:generateContent?key={key}"
-    try:
-        r = requests.post(url, json=payload, headers={"Content-Type": "application/json"}).json()
-        if "candidates" in r and len(r["candidates"]) > 0:
-            return r["candidates"][0]["content"]["parts"][0]["text"]
-        else:
-            print(f"❌ Lỗi từ Gemini API: {r}")
-            return None
-    except Exception as e:
-        print(f"❌ Lỗi kết nối API: {e}")
-        return None
+    last_err = None
+    for model_name in models_to_try:
+        print(f"🧠 Đang thử kết nối model: {model_name}...")
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={key}"
+        try:
+            res = requests.post(url, json=payload, headers={"Content-Type": "application/json"}).json()
+            if "candidates" in res and len(res["candidates"]) > 0:
+                print(f"✅ Kết nối thành công với {model_name}!")
+                return res["candidates"][0]["content"]["parts"][0]["text"]
+            else:
+                last_err = res
+        except Exception as e:
+            last_err = str(e)
+
+    print(f"❌ Lỗi từ Gemini API: {last_err}")
+    return None
