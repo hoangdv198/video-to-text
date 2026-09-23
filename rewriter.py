@@ -2,20 +2,37 @@ import os
 import json
 import requests
 
-def rewrite_script_with_gemini(transcript_text: str, api_key: str = None) -> dict:
+def get_gemini_api_key(api_key: *** = None) -> ***:
+    # 1. Ưu tiên key truyền từ tham số CLI
+    if api_key:
+        return api_key
+    # 2. Lấy từ biến môi trường
+    if os.getenv("GEMINI_API_KEY"):
+        return os.getenv("GEMINI_API_KEY")
+    # 3. Lấy từ Google Colab Secrets (userdata) nếu đang chạy trên Colab
+    try:
+        from google.colab import userdata
+        key = userdata.get('GEMINI_API_KEY')
+        if key:
+            return key
+    except Exception:
+        pass
+    return None
+
+def rewrite_script_with_gemini(transcript_text: str, api_key: *** = None) -> dict:
     """
     Sử dụng Google Gemini 1.5 Flash (hoàn toàn miễn phí) để phân tích
     và biến tấu kịch bản thoại video thành 3 góc kịch bản TikTok/Shorts mới.
     """
-    key = api_key or os.getenv("GEMINI_API_KEY")
+    key = get_gemini_api_key(api_key)
     if not key:
-        print("⚠️ Không tìm thấy GEMINI_API_KEY. Vui lòng cung cấp key hoặc đặt biến môi trường.")
+        print("⚠️ Không tìm thấy GEMINI_API_KEY. Vui lòng cung cấp key qua --api_key, biến môi trường, hoặc mục Secrets trên Colab.")
         return None
 
     print("\n🧠 Đang kết nối Gemini 1.5 Flash AI để phân tích và biến tấu kịch bản...")
     
     # Endpoint Gemini 1.5 Flash
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={key}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=***}"
     
     prompt = f"""
 Bạn là một chuyên gia sáng tạo nội dung TikTok & Video Ngắn (Shorts/Reels) triệu view hàng đầu.
