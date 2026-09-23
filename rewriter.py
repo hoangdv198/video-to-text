@@ -27,7 +27,6 @@ def rewrite_script_with_gemini(transcript_text, api_key=None):
         print("⚠️ Không tìm thấy GEMINI_API_KEY.")
         return None
 
-    # Danh sách model theo đúng chỉ định mới nhất của Google API:
     models_to_try = [
         "gemini-3.1-pro-preview",
         "gemini-3-flash-preview",
@@ -36,34 +35,32 @@ def rewrite_script_with_gemini(transcript_text, api_key=None):
     ]
 
     prompt = f"""
-Bạn là một chuyên gia sáng tạo nội dung TikTok & Video Ngắn (Shorts/Reels) triệu view hàng đầu.
-Dưới đây là nội dung lời thoại bóc băng từ một video gốc:
+Bạn là một chuyên gia tối ưu và viết lại kịch bản video ngắn (TikTok/Reels/Shorts) chuyển đổi cao.
+Dưới đây là lời thoại gốc bóc băng từ video:
 ---
 "{transcript_text}"
 ---
 
-Hãy phân tích và viết lại thành 3 kịch bản biến tấu mới mẻ, hấp dẫn, chuẩn phong cách TikTok (giữ chân người xem trong 3s đầu, đánh trúng nỗi đau, thúc đẩy mua hàng tự nhiên):
+YÊU CẦU QUAN TRỌNG:
+- BẮT BUỘC GIỮ NGUYÊN KHUNG SƯỜN & MẠCH Ý GỐC: Đi đúng thứ tự từng luận điểm, tính năng, thông số và trải nghiệm như video gốc đã nói (không sáng tác thêm nhân vật hay bối cảnh lạ, không làm mất sườn bài).
+- MỤC TIÊU: "Thay da đổi thịt" lời thoại trên chính khung xương đó để video tự nhiên hơn, bắt tai hơn, giật hook mở đầu bén hơn và tăng tỉ lệ giữ chân người xem.
 
-1. **PHÂN TÍCH VIDEO GỐC**:
-- Góc tiếp cận (Angle) & Nỗi đau (Pain point) chính.
-- Điểm mạnh & Điểm cần cải thiện.
+Hãy xuất ra:
+1. **KHUNG SƯỜN Ý CHÍNH CỦA VIDEO GỐC** (Tóm tắt các bước theo mạch video gốc).
 
-2. **KỊCH BẢN 1: PHONG CÁCH TÂM SỰ / TRẢI NGHIỆM ĐỜI THƯỜNG (Storytelling)**
-- Tiêu đề & Hook 3s đầu (Gây tò mò / đồng cảm).
-- Kịch bản chi tiết: Phân cảnh quay + Lời thoại.
-- Lời kêu gọi hành động (CTA).
+2. **BẢN BIẾN TẤU 1: PHONG CÁCH TỰ NHIÊN, GẦN GŨI (Conversational - Như bạn thân khuyên nhau)**
+- Giữ 100% mạch ý gốc.
+- Viết lại câu từ mềm mại, chân thật, tự nhiên như lời nói thường ngày.
 
-3. **KỊCH BẢN 2: PHONG CÁCH DRAMA / BÓC PHỐT / GÂY TRANH CÃI (Controversial Hook)**
-- Tiêu đề & Hook 3s đầu (Cực sốc, phá vỡ niềm tin cũ).
-- Kịch bản chi tiết: Phân cảnh quay + Lời thoại.
-- Lời kêu gọi hành động (CTA).
+3. **BẢN BIẾN TẤU 2: PHONG CÁCH NĂNG LƯỢNG CAO, BẮT TREND (High Energy / Fast Paced)**
+- Giữ 100% mạch ý gốc.
+- Hook mở đầu dứt khoát, nhịp điệu nhanh, câu từ ngắn gọn, gãy gọn, kích thích nghe tiếp.
 
-4. **KỊCH BẢN 3: PHONG CÁCH CHUYÊN GIA / BÁC SĨ TƯ VẤN (Expert / Authority)**
-- Tiêu đề & Hook 3s đầu (Đánh vào kiến thức khoa học / sức khỏe).
-- Kịch bản chi tiết: Phân cảnh quay + Lời thoại.
-- Lời kêu gọi hành động (CTA).
+4. **BẢN BIẾN TẤU 3: PHONG CÁCH TỐI ƯU CHUYỂN ĐỔI (Conversion Focus - Bán hàng mượt mà)**
+- Giữ 100% mạch ý gốc.
+- Nhấn mạnh sâu vào cảm giác thỏa mãn và giải pháp chấm dứt nỗi đau đau mỏi vai gáy.
 
-Viết bằng tiếng Việt tự nhiên, ngắt nghỉ rõ ràng, chuẩn phong cách nói chuyện của Creator.
+(Mỗi bản đều chia rõ từng đoạn tương ứng với sườn gốc kèm gợi ý hành động/cảnh quay thực tế).
 """
 
     payload = {
