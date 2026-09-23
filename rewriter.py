@@ -2,9 +2,9 @@ import os
 import json
 import requests
 
-def get_gemini_api_key(api_key=***
+def get_gemini_api_key(api_key=None):
     if api_key:
-        *** api_key
+        return api_key
     for env_var in ["GEMINI_API_KEY", "GEMINI_A", "GEMINI A", "GEMINI_KEY"]:
         if os.getenv(env_var):
             return os.getenv(env_var)
@@ -21,16 +21,13 @@ def get_gemini_api_key(api_key=***
         pass
     return None
 
-def rewrite_script_with_gemini(transcript_text, api_key=***
+def rewrite_script_with_gemini(transcript_text, api_key=None):
     key = get_gemini_api_key(api_key)
     if not key:
         print("⚠️ Không tìm thấy GEMINI_API_KEY.")
         return None
 
-    # Google đã chuyển sang thế hệ Gemini 3.x cho các tài khoản mới tạo:
-    # 1. gemini-3.1-pro-preview (Google đề xuất trực tiếp trong thông báo lỗi)
-    # 2. gemini-3-flash-preview
-    # 3. gemini-3.1-flash-lite-preview
+    # Danh sách model theo đúng chỉ định mới nhất của Google API:
     models_to_try = [
         "gemini-3.1-pro-preview",
         "gemini-3-flash-preview",
@@ -77,7 +74,7 @@ Viết bằng tiếng Việt tự nhiên, ngắt nghỉ rõ ràng, chuẩn phong
     last_err = None
     for model_name in models_to_try:
         print(f"🧠 Đang kết nối Gemini AI ({model_name})...")
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key=***}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={key}"
         try:
             res = requests.post(url, json=payload, headers={"Content-Type": "application/json"}).json()
             if "candidates" in res and len(res["candidates"]) > 0:
