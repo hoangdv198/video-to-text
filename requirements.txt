@@ -1,0 +1,4 @@
+faster-whisper
+requests
+urllib3
+tqdm
