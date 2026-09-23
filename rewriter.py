@@ -3,16 +3,11 @@ import json
 import requests
 
 def get_gemini_api_key(api_key=None):
-    # 1. Key truyen truc tiep qua CLI
     if api_key:
         return api_key
-
-    # 2. Key tu bien moi truong
     for env_var in ["GEMINI_API_KEY", "GEMINI_A", "GEMINI_KEY"]:
         if os.getenv(env_var):
             return os.getenv(env_var)
-
-    # 3. Key tu Google Colab Secrets (userdata)
     try:
         from google.colab import userdata
         for key_name in ["GEMINI_API_KEY", "GEMINI_A", "GEMINI A", "GEMINI_KEY"]:
@@ -24,75 +19,73 @@ def get_gemini_api_key(api_key=None):
                 pass
     except Exception:
         pass
-
     return None
 
 def rewrite_script_with_gemini(transcript_text, api_key=None):
-    """
-    Su dung Google Gemini 1.5 Flash (hoan toan mien phi) de phan tich
-    va bien tau kich ban thoai video thanh 3 goc kich ban TikTok/Shorts moi.
-    """
     key = get_gemini_api_key(api_key)
     if not key:
-        print("⚠️ Khong tim thay GEMINI_API_KEY.")
-        print("💡 Meo: Anh co the truyen truc tiep: --api_key 'AIzaSy...' hoac them vao Colab Secrets.")
+        print("⚠️ Không tìm thấy GEMINI_API_KEY.")
         return None
 
-    print("\n🧠 Dang ket noi Gemini 1.5 Flash AI de phan tich va bien tau kich ban...")
-    
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={key}"
+    print("\n🧠 Đang kết nối Gemini AI để phân tích và biến tấu kịch bản...")
     
     prompt = f"""
-Ban la mot chuyen gia sang tao noi dung TikTok & Video Ngan trieu view hang dau.
-Duoi day la noi dung loi thoai boc bang tu video goc:
+Bạn là một chuyên gia sáng tạo nội dung TikTok & Video Ngắn (Shorts/Reels) triệu view hàng đầu.
+Dưới đây là nội dung lời thoại bóc băng từ một video gốc:
 ---
 "{transcript_text}"
 ---
 
-Hay phan tich va viet lai thanh 3 kich ban bien tau moi me, hap dan, chuan phong cach TikTok (giu chan nguoi xem trong 3s dau, danh trung noi dau, thuc day mua hang tu nhien):
+Hãy phân tích và viết lại thành 3 kịch bản biến tấu mới mẻ, hấp dẫn, chuẩn phong cách TikTok (giữ chân người xem trong 3s đầu, đánh trúng nỗi đau, thúc đẩy mua hàng tự nhiên):
 
-1. **PHAN TICH VIDEO GOC**:
-- Goc tiep can (Angle) & Noi dau (Pain point) chinh.
-- Diem manh & Diem can cai thien.
+1. **PHÂN TÍCH VIDEO GỐC**:
+- Góc tiếp cận (Angle) & Nỗi đau (Pain point) chính.
+- Điểm mạnh & Điểm cần cải thiện.
 
-2. **KICH BAN 1: PHONG CACH TAM SU / TRAI NGHIEM DOI THUONG (Storytelling)**
-- Tieu de & Hook 3s dau (Gay to mo / dong cam).
-- Kich ban chi tiet: Phan canh quay + Loi thoai.
-- Loi keu goi hanh dong (CTA).
+2. **KỊCH BẢN 1: PHONG CÁCH TÂM SỰ / TRẢI NGHIỆM ĐỜI THƯỜNG (Storytelling)**
+- Tiêu đề & Hook 3s đầu (Gây tò mò / đồng cảm).
+- Kịch bản chi tiết: Phân cảnh quay + Lời thoại.
+- Lời kêu gọi hành động (CTA).
 
-3. **KICH BAN 2: PHONG CACH DRAMA / BOC PHOT / GAY TRANH CAI (Controversial Hook)**
-- Tieu de & Hook 3s dau (Cuc soc, pha vo niem tin cu).
-- Kich ban chi tiet: Phan canh quay + Loi thoai.
-- Loi keu goi hanh dong (CTA).
+3. **KỊCH BẢN 2: PHONG CÁCH DRAMA / BÓC PHỐT / GÂY TRANH CÃI (Controversial Hook)**
+- Tiêu đề & Hook 3s đầu (Cực sốc, phá vỡ niềm tin cũ).
+- Kịch bản chi tiết: Phân cảnh quay + Lời thoại.
+- Lời kêu gọi hành động (CTA).
 
-4. **KICH BAN 3: PHONG CACH CHUYEN GIA / BAC SI TU VAN (Expert / Authority)**
-- Tieu de & Hook 3s dau (Danh vao kien thuc khoa hoc / suc khoe).
-- Kich ban chi tiet: Phan canh quay + Loi thoai.
-- Loi keu goi hanh dong (CTA).
+4. **KỊCH BẢN 3: PHONG CÁCH CHUYÊN GIA / BÁC SĨ TƯ VẤN (Expert / Authority)**
+- Tiêu đề & Hook 3s đầu (Đánh vào kiến thức khoa học / sức khỏe).
+- Kịch bản chi tiết: Phân cảnh quay + Lời thoại.
+- Lời kêu gọi hành động (CTA).
 
-Viet bang tieng Viet tu nhien, ngat nghi ro rang, chuan phong cach noi chuyen cua Creator.
+Viết bằng tiếng Việt tự nhiên, ngắt nghỉ rõ ràng, chuẩn phong cách nói chuyện của Creator.
 """
 
     payload = {
-        "contents": [{
-            "parts": [{"text": prompt}]
-        }],
-        "generationConfig": {
-            "temperature": 0.7,
-            "maxOutputTokens": 4096
-        }
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {"temperature": 0.7, "maxOutputTokens": 4096}
     }
 
-    try:
-        response = requests.post(url, json=payload, headers={"Content-Type": "application/json"})
-        res_data = response.json()
-        
-        if "candidates" in res_data and len(res_data["candidates"]) > 0:
-            result_text = res_data["candidates"][0]["content"]["parts"][0]["text"]
-            return result_text
-        else:
-            print(f"❌ Loi tu Gemini API: {res_data}")
-            return None
-    except Exception as e:
-        print(f"❌ Loi ket noi API: {e}")
-        return None
+    # Thử danh sách các model từ mới nhất (2.5-flash, 2.0-flash, 1.5-flash-latest, 1.5-flash-8b...)
+    candidate_endpoints = [
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent",
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b:generateContent",
+        "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent",
+    ]
+
+    last_err = None
+    for endpoint in candidate_endpoints:
+        url = f"{endpoint}?key={key}"
+        try:
+            response = requests.post(url, json=payload, headers={"Content-Type": "application/json"})
+            res_data = response.json()
+            if "candidates" in res_data and len(res_data["candidates"]) > 0:
+                return res_data["candidates"][0]["content"]["parts"][0]["text"]
+            else:
+                last_err = res_data
+        except Exception as e:
+            last_err = str(e)
+
+    print(f"❌ Lỗi từ Gemini API: {last_err}")
+    return None
