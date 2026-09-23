@@ -2,24 +2,28 @@ import os
 import json
 import requests
 
-def get_gemini_api_key(api_key=None):
+def get_gemini_api_key(api_key=***
     # 1. Uu tien key truyen tu tham so CLI
     if api_key:
-        return api_key
+        *** api_key
     # 2. Lay tu bien moi truong
     if os.getenv("GEMINI_API_KEY"):
         return os.getenv("GEMINI_API_KEY")
     # 3. Lay tu Google Colab Secrets (userdata)
     try:
         from google.colab import userdata
-        key = userdata.get("GEMINI_API_KEY")
-        if key:
-            return key
+        for key_name in ["GEMINI_API_KEY", "GEMINI_A", "GEMINI_KEY"]:
+            try:
+                k = userdata.get(key_name)
+                if k:
+                    return k
+            except Exception:
+                pass
     except Exception:
         pass
     return None
 
-def rewrite_script_with_gemini(transcript_text, api_key=None):
+def rewrite_script_with_gemini(transcript_text, api_key=***
     """
     Su dung Google Gemini 1.5 Flash (hoan toan mien phi) de phan tich
     va bien tau kich ban thoai video thanh 3 goc kich ban TikTok/Shorts moi.
@@ -31,7 +35,7 @@ def rewrite_script_with_gemini(transcript_text, api_key=None):
 
     print("\n🧠 Dang ket noi Gemini 1.5 Flash AI de phan tich va bien tau kich ban...")
     
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={key}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=***}"
     
     prompt = f"""
 Bạn là một chuyên gia sáng tạo nội dung TikTok & Video Ngắn (Shorts/Reels) triệu view hàng đầu.
