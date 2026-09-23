@@ -1,9 +1,16 @@
 import argparse
 import os
 import glob
+import sys
+import importlib
+
+# Bắt buộc reload lại rewriter để tránh việc Jupyter Notebook / Colab cache module cũ trong RAM
+if "rewriter" in sys.modules:
+    importlib.reload(sys.modules["rewriter"])
+
 from downloader import download_video
 from transcriber import transcribe_audio_or_video
-from rewriter import rewrite_script_with_gemini
+import rewriter
 
 def main():
     parser = argparse.ArgumentParser(description="Tự động tải video (TikTok, YouTube, FB...), bóc băng phụ đề và biến tấu kịch bản bằng AI")
@@ -55,7 +62,6 @@ def main():
                 lines = f.readlines()
                 for line in lines:
                     line = line.strip()
-                    # Bỏ qua số thứ tự và mốc thời gian của SRT
                     if line.isdigit() or "-->" in line or not line:
                         continue
                     full_transcript.append(line)
@@ -66,7 +72,7 @@ def main():
             print("⚠️ Không tìm thấy nội dung lời thoại để biến tấu.")
             return
 
-        new_scripts = rewrite_script_with_gemini(transcript_text, api_key=args.api_key)
+        new_scripts = rewriter.rewrite_script_with_gemini(transcript_text, api_key=args.api_key)
         
         if new_scripts:
             print("\n" + "*"*20 + " KẾT QUẢ BIẾN TẤU KỊCH BẢN " + "*"*20)
