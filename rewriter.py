@@ -1,9 +1,10 @@
 import os
 import json
+import requests
 
-def get_gemini_api_key(api_key=***
+def get_gemini_api_key(api_key=None):
     if api_key:
-        *** api_key
+        return api_key
     for env_var in ["GEMINI_API_KEY", "GEMINI_A", "GEMINI A", "GEMINI_KEY"]:
         if os.getenv(env_var):
             return os.getenv(env_var)
@@ -20,13 +21,13 @@ def get_gemini_api_key(api_key=***
         pass
     return None
 
-def rewrite_script_with_gemini(transcript_text, api_key=***
+def rewrite_script_with_gemini(transcript_text, api_key=None):
     key = get_gemini_api_key(api_key)
     if not key:
         print("⚠️ Không tìm thấy GEMINI_API_KEY.")
         return None
 
-    print("\n🧠 Đang kết nối Gemini AI chính thức để phân tích và biến tấu kịch bản...")
+    print("\n🧠 Đang kết nối Gemini AI để phân tích và biến tấu kịch bản...")
     
     prompt = f"""
 Bạn là một chuyên gia sáng tạo nội dung TikTok & Video Ngắn (Shorts/Reels) triệu view hàng đầu.
@@ -59,44 +60,40 @@ Hãy phân tích và viết lại thành 3 kịch bản biến tấu mới mẻ,
 Viết bằng tiếng Việt tự nhiên, ngắt nghỉ rõ ràng, chuẩn phong cách nói chuyện của Creator.
 """
 
-    # Cách 1: Sử dụng thư viện chuẩn google.generativeai (Pre-installed trên Colab)
+    # 1. Thử qua thư viện chính thức google.generativeai nếu có
     try:
         import google.generativeai as genai
         genai.configure(api_key=key)
-        
-        # Thử các model theo thứ tự ưu tiên
-        for model_name in ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-pro", "gemini-pro"]:
+        for m in ["gemini-1.5-flash-latest", "gemini-1.5-flash", "gemini-2.0-flash", "gemini-pro"]:
             try:
-                model = genai.GenerativeModel(model_name)
-                response = model.generate_content(prompt)
-                if response and response.text:
-                    return response.text
+                gmodel = genai.GenerativeModel(m)
+                resp = gmodel.generate_content(prompt)
+                if resp and resp.text:
+                    return resp.text
             except Exception:
                 continue
     except Exception:
         pass
 
-    # Cách 2: Gọi HTTP REST trực tiếp nếu không dùng được SDK
-    import requests
-    candidate_endpoints = [
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent",
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
-        "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent",
-    ]
+    # 2. Thử REST API qua các model phổ biến
     payload = {
         "contents": [{"parts": [{"text": prompt}]}],
         "generationConfig": {"temperature": 0.7, "maxOutputTokens": 4096}
     }
-    
+    candidate_urls = [
+        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={key}",
+        f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={key}",
+        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={key}",
+        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={key}",
+    ]
     last_err = None
-    for endpoint in candidate_endpoints:
-        url = f"{endpoint}?key=***}"
+    for u in candidate_urls:
         try:
-            res = requests.post(url, json=payload, headers={"Content-Type": "application/json"}).json()
-            if "candidates" in res and len(res["candidates"]) > 0:
-                return res["candidates"][0]["content"]["parts"][0]["text"]
+            r = requests.post(u, json=payload, headers={"Content-Type": "application/json"}).json()
+            if "candidates" in r and len(r["candidates"]) > 0:
+                return r["candidates"][0]["content"]["parts"][0]["text"]
             else:
-                last_err = res
+                last_err = r
         except Exception as e:
             last_err = str(e)
 
