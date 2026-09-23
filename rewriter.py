@@ -2,9 +2,9 @@ import os
 import json
 import requests
 
-def get_gemini_api_key(api_key=None):
+def get_gemini_api_key(api_key=***
     if api_key:
-        return api_key
+        *** api_key
     for env_var in ["GEMINI_API_KEY", "GEMINI_A", "GEMINI A", "GEMINI_KEY"]:
         if os.getenv(env_var):
             return os.getenv(env_var)
@@ -21,22 +21,21 @@ def get_gemini_api_key(api_key=None):
         pass
     return None
 
-def rewrite_script_with_gemini(transcript_text, api_key=None):
+def rewrite_script_with_gemini(transcript_text, api_key=***
     key = get_gemini_api_key(api_key)
     if not key:
         print("⚠️ Không tìm thấy GEMINI_API_KEY.")
         return None
 
-    # Danh sách các model chính thức theo tài liệu Google AI mới nhất:
-    # 1. gemini-2.5-flash (Model flagship thế hệ mới)
-    # 2. gemini-2.0-flash (Model flash siêu tốc)
-    # 3. gemini-2.0-flash-lite
-    # 4. gemini-2.5-pro
+    # Google đã chuyển sang thế hệ Gemini 3.x cho các tài khoản mới tạo:
+    # 1. gemini-3.1-pro-preview (Google đề xuất trực tiếp trong thông báo lỗi)
+    # 2. gemini-3-flash-preview
+    # 3. gemini-3.1-flash-lite-preview
     models_to_try = [
+        "gemini-3.1-pro-preview",
+        "gemini-3-flash-preview",
+        "gemini-3.1-flash-lite-preview",
         "gemini-2.5-flash",
-        "gemini-2.0-flash",
-        "gemini-2.0-flash-lite",
-        "gemini-2.5-pro"
     ]
 
     prompt = f"""
@@ -77,8 +76,8 @@ Viết bằng tiếng Việt tự nhiên, ngắt nghỉ rõ ràng, chuẩn phong
 
     last_err = None
     for model_name in models_to_try:
-        print(f"🧠 Đang thử kết nối model: {model_name}...")
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={key}"
+        print(f"🧠 Đang kết nối Gemini AI ({model_name})...")
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key=***}"
         try:
             res = requests.post(url, json=payload, headers={"Content-Type": "application/json"}).json()
             if "candidates" in res and len(res["candidates"]) > 0:
